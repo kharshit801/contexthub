@@ -1,0 +1,281 @@
+{
+  "description": "ContextHub evaluation benchmark - tests whether structured business context improves AI agent reliability",
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "q01",
+      "question": "What was our revenue last month?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "The agent must choose net_revenue (certified) over gross_revenue (deprecated). Must also filter for completed orders only."
+    },
+    {
+      "id": "q02",
+      "question": "What was our total revenue in July 2026?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Word 'total' might trick baseline into using total_amount. ContextHub should still use net_revenue definition."
+    },
+    {
+      "id": "q03",
+      "question": "Which metric should I use for revenue reporting?",
+      "category": "context_awareness",
+      "difficulty": "medium",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": null,
+      "notes": "Agent should identify net_revenue as certified and explain why gross_revenue is deprecated."
+    },
+    {
+      "id": "q04",
+      "question": "How many active customers do we have?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "active_customer_count",
+      "expected_source_table": "business.customers",
+      "expected_source_column": "id",
+      "expected_filter": "is_active = true AND last_order_date >= CURRENT_DATE - INTERVAL '90 days'",
+      "notes": "Baseline might just count WHERE is_active = true. ContextHub should also apply the 90-day recency rule."
+    },
+    {
+      "id": "q05",
+      "question": "What is our average order value?",
+      "category": "metric_selection",
+      "difficulty": "medium",
+      "expected_metric": "average_order_value",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Must use net_amount (not total_amount) and filter for completed orders."
+    },
+    {
+      "id": "q06",
+      "question": "What is our gross revenue?",
+      "category": "trust_signal",
+      "difficulty": "hard",
+      "expected_metric": "gross_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "total_amount",
+      "expected_filter": null,
+      "notes": "Even though asked for gross_revenue, ContextHub should warn it's deprecated and suggest net_revenue instead."
+    },
+    {
+      "id": "q07",
+      "question": "Which revenue metric is deprecated?",
+      "category": "context_awareness",
+      "difficulty": "easy",
+      "expected_metric": "gross_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "total_amount",
+      "expected_filter": null,
+      "notes": "Agent should identify gross_revenue as deprecated."
+    },
+    {
+      "id": "q08",
+      "question": "What is the total number of customers?",
+      "category": "metric_selection",
+      "difficulty": "easy",
+      "expected_metric": "total_customer_count",
+      "expected_source_table": "business.customers",
+      "expected_source_column": "id",
+      "expected_filter": null,
+      "notes": "Simple count of all customers, regardless of active status."
+    },
+    {
+      "id": "q09",
+      "question": "What is our refund rate?",
+      "category": "metric_selection",
+      "difficulty": "medium",
+      "expected_metric": "refund_rate",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "status",
+      "expected_filter": "status IN ('completed', 'refunded')",
+      "notes": "Refunded / (Completed + Refunded). Should not include cancelled or pending orders in denominator."
+    },
+    {
+      "id": "q10",
+      "question": "What was the revenue from enterprise customers in July?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed' AND customers.segment = 'enterprise'",
+      "notes": "Must use net_revenue definition (certified) with customer segment join. Requires understanding both metric definition and table relationships."
+    },
+    {
+      "id": "q11",
+      "question": "Which table should I query for payment information?",
+      "category": "context_awareness",
+      "difficulty": "easy",
+      "expected_metric": null,
+      "expected_source_table": "business.payments",
+      "expected_source_column": null,
+      "expected_filter": null,
+      "notes": "Agent should identify payments table and describe its structure."
+    },
+    {
+      "id": "q12",
+      "question": "What does the total_amount column in orders represent?",
+      "category": "context_awareness",
+      "difficulty": "medium",
+      "expected_metric": null,
+      "expected_source_table": "business.orders",
+      "expected_source_column": "total_amount",
+      "expected_filter": null,
+      "notes": "ContextHub should explain it's the pre-adjustment amount and warn it's NOT revenue. Should reference business context."
+    },
+    {
+      "id": "q13",
+      "question": "How do orders relate to payments?",
+      "category": "lineage",
+      "difficulty": "easy",
+      "expected_metric": null,
+      "expected_source_table": null,
+      "expected_source_column": null,
+      "expected_filter": null,
+      "notes": "Agent should explain the FK relationship: payments.order_id → orders.id, one payment per order."
+    },
+    {
+      "id": "q14",
+      "question": "What is our order completion rate?",
+      "category": "metric_selection",
+      "difficulty": "medium",
+      "expected_metric": "order_completion_rate",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "status",
+      "expected_filter": "status != 'pending'",
+      "notes": "Completed / (all non-pending). Must exclude pending orders from denominator."
+    },
+    {
+      "id": "q15",
+      "question": "What was revenue by product category in July 2026?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Must use net_revenue, join to products table, group by category. Tests multi-table understanding."
+    },
+    {
+      "id": "q16",
+      "question": "Can I use MRR for reporting?",
+      "category": "trust_signal",
+      "difficulty": "medium",
+      "expected_metric": "monthly_recurring_revenue",
+      "expected_source_table": null,
+      "expected_source_column": null,
+      "expected_filter": null,
+      "notes": "Agent should identify MRR as a draft/stale metric that is not ready for use."
+    },
+    {
+      "id": "q17",
+      "question": "What are our top 5 products by revenue?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Must use net_amount for completed orders, joined to products, ordered by sum descending with LIMIT 5."
+    },
+    {
+      "id": "q18",
+      "question": "How many orders were cancelled?",
+      "category": "simple_query",
+      "difficulty": "easy",
+      "expected_metric": null,
+      "expected_source_table": "business.orders",
+      "expected_source_column": "status",
+      "expected_filter": "status = 'cancelled'",
+      "notes": "Simple count with status filter. Both agents should get this right."
+    },
+    {
+      "id": "q19",
+      "question": "What's the difference between total_amount and net_amount?",
+      "category": "context_awareness",
+      "difficulty": "medium",
+      "expected_metric": null,
+      "expected_source_table": "business.orders",
+      "expected_source_column": null,
+      "expected_filter": null,
+      "notes": "ContextHub should explain the full calculation: net = total - discount - refund + tax. And note that net_amount is the certified revenue column."
+    },
+    {
+      "id": "q20",
+      "question": "What payment methods do our customers use most?",
+      "category": "simple_query",
+      "difficulty": "easy",
+      "expected_metric": null,
+      "expected_source_table": "business.payments",
+      "expected_source_column": "method",
+      "expected_filter": "status = 'completed'",
+      "notes": "Group by payment method, count completed payments. Both agents should handle this."
+    },
+    {
+      "id": "q21",
+      "question": "Who owns the revenue metric?",
+      "category": "context_awareness",
+      "difficulty": "easy",
+      "expected_metric": "net_revenue",
+      "expected_source_table": null,
+      "expected_source_column": null,
+      "expected_filter": null,
+      "notes": "Should return Finance Team as owner of net_revenue."
+    },
+    {
+      "id": "q22",
+      "question": "What data source does the recognized_revenue metric use?",
+      "category": "context_awareness",
+      "difficulty": "medium",
+      "expected_metric": "recognized_revenue",
+      "expected_source_table": "business.payments",
+      "expected_source_column": "amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Should identify payments.amount as source and note it's experimental status."
+    },
+    {
+      "id": "q23",
+      "question": "Compare revenue between June and July 2026",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Must use net_revenue for both months. Tests temporal comparison with correct metric."
+    },
+    {
+      "id": "q24",
+      "question": "Is the customers.is_active flag reliable for counting active customers?",
+      "category": "trust_signal",
+      "difficulty": "hard",
+      "expected_metric": "active_customer_count",
+      "expected_source_table": "business.customers",
+      "expected_source_column": "is_active",
+      "expected_filter": null,
+      "notes": "ContextHub should warn that is_active alone is unreliable and explain the certified definition requires 90-day recency."
+    },
+    {
+      "id": "q25",
+      "question": "What customer segments generate the most revenue?",
+      "category": "metric_selection",
+      "difficulty": "hard",
+      "expected_metric": "net_revenue",
+      "expected_source_table": "business.orders",
+      "expected_source_column": "net_amount",
+      "expected_filter": "status = 'completed'",
+      "notes": "Must use net_revenue, join customers, group by segment. Tests multi-table understanding with correct metric."
+    }
+  ]
+}
