@@ -197,7 +197,7 @@ evaluation/results/eval_YYYYMMDD.json
 
 | Component | Alternative Considered | Why Current Choice |
 |-----------|----------------------|-------------------|
-| LangGraph | Custom while loop | Portfolio value; structured state management |
+| LangGraph | Custom while loop | Structured state management; better observability |
 | PostgreSQL context | Vector store | Context is structured with known fields; exact lookup > fuzzy search |
 | MCP tools | Direct function calls | Standardized protocol; demonstrates understanding of emerging standards |
 | Pydantic models | Raw dicts | Type safety; validation; documentation |

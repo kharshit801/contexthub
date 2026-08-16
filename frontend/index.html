@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContextHub — AI Context Layer for Enterprise Data</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-darker: #16213e;
+            --accent: #4361ee;
+            --accent-hover: #3a56d4;
+            --white: #ffffff;
+            --gray-50: #f8f9fa;
+            --gray-100: #f1f3f5;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #adb5bd;
+            --gray-500: #6c757d;
+            --gray-600: #495057;
+            --gray-700: #343a40;
+            --gray-800: #212529;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --stale-gray: #9ca3af;
+            --sidebar-width: 260px;
+            --header-height: 64px;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+            --transition: 0.2s ease;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: transform var(--transition);
+        }
+
+        .sidebar-brand {
+            padding: 24px 24px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand h1 .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .sidebar-brand p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+            padding-left: 42px;
+            font-weight: 400;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.65);
+            transition: all var(--transition);
+            margin-bottom: 4px;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--white);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            height: var(--header-height);
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 2px;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* Ask Page */
+        .ask-input-group {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .ask-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .ask-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .agent-toggle {
+            display: flex;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .agent-toggle button {
+            padding: 12px 16px;
+            border: none;
+            background: var(--white);
+            font-size: 13px;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--gray-600);
+            transition: all var(--transition);
+        }
+
+        .agent-toggle button.active {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .agent-toggle button:not(.active):hover {
+            background: var(--gray-100);
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: var(--accent);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+            flex-shrink: 0;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Response */
+        .response-area {
+            margin-top: 24px;
+        }
+
+        .response-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .response-header {
+            padding: 16px 20px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .response-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .agent-badge {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--accent);
+        }
+
+        .latency-badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        .response-body {
+            padding: 20px;
+        }
+
+        .response-answer {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--gray-700);
+            white-space: pre-wrap;
+        }
+
+        /* Tool Calls Timeline */
+        .tool-calls-section {
+            margin-top: 16px;
+            border-top: 1px solid var(--gray-200);
+            padding-top: 16px;
+        }
+
+        .tool-calls-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            padding: 8px 0;
+            user-select: none;
+        }
+
+        .tool-calls-toggle svg {
+            width: 16px;
+            height: 16px;
+            transition: transform var(--transition);
+        }
+
+        .tool-calls-toggle.expanded svg {
+            transform: rotate(90deg);
+        }
+
+        .tool-calls-timeline {
+            display: none;
+            padding: 12px 0 0 12px;
+            margin-top: 8px;
+        }
+
+        .tool-calls-timeline.visible {
+            display: block;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 0 0 16px 24px;
+            border-left: 2px solid var(--gray-200);
+        }
+
+        .timeline-item:last-child {
+            border-left-color: transparent;
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--white);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .timeline-item-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 2px;
+        }
+
+        .timeline-item-detail {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        /* Sources */
+        .sources-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .sources-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+        }
+
+        .source-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--gray-100);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--gray-600);
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        /* Compare Page */
+        .compare-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .compare-panel {
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            background: var(--white);
+            overflow: hidden;
+        }
+
+        .compare-panel-header {
+            padding: 14px 18px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .compare-panel-body {
+            padding: 18px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--gray-700);
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+
+        /* Metrics Page */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            transition: box-shadow var(--transition), transform var(--transition);
+        }
+
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .metric-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .metric-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .metric-description {
+            font-size: 13px;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+
+        .metric-meta {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .metric-meta-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-certified {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--green);
+        }
+
+        .badge-deprecated {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+        }
+
+        .badge-experimental {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--yellow);
+        }
+
+        .badge-stale {
+            background: rgba(156, 163, 175, 0.15);
+            color: var(--stale-gray);
+        }
+
+        /* Schema Page */
+        .schema-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .schema-select {
+            padding: 10px 16px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--white);
+            outline: none;
+            min-width: 240px;
+        }
+
+        .schema-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .schema-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .schema-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-bottom: 2px solid var(--gray-200);
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .schema-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .schema-table tr:hover td {
+            background: var(--gray-50);
+        }
+
+        .col-type {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            background: rgba(67, 97, 238, 0.06);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Loading */
+        .spinner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .spinner.visible {
+            display: flex;
+        }
+
+        .spinner-circle {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error */
+        .error-message {
+            padding: 16px 20px;
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--radius);
+            color: var(--red);
+            font-size: 13px;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-400);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Mobile */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 200;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--bg-dark);
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .compare-split {
+                grid-template-columns: 1fr;
+            }
+
+            .ask-input-group {
+                flex-direction: column;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 0 16px 0 60px;
+            }
+        }
+
+        /* Scrollbar */
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Mobile Toggle -->
+        <button class="mobile-toggle" onclick="toggleSidebar()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>
+                    <span class="logo-icon">⬡</span>
+                    ContextHub
+                </h1>
+                <p>AI Context Layer for Enterprise Data</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-page="ask" onclick="navigate('ask')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                    Ask
+                </div>
+                <div class="nav-item" data-page="compare" onclick="navigate('compare')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                    Compare
+                </div>
+                <div class="nav-item" data-page="metrics" onclick="navigate('metrics')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Metrics
+                </div>
+                <div class="nav-item" data-page="schema" onclick="navigate('schema')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                    Schema
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                ContextHub v1.0 · Context-aware AI agents
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <header class="header">
+                <div>
+                    <div class="header-title" id="header-title">Ask a Question</div>
+                    <div class="header-subtitle" id="header-subtitle">Query your enterprise data with AI context</div>
+                </div>
+                <div class="header-status">
+                    <span class="status-dot"></span>
+                    Backend connected
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- ASK PAGE -->
+                <section class="page active" id="page-ask">
+                    <div class="card">
+                        <div class="ask-input-group">
+                            <input type="text" class="ask-input" id="ask-input" placeholder="Ask a question about your data..." onkeydown="if(event.key==='Enter')askQuestion()">
+                            <div class="agent-toggle">
+                                <button class="active" id="toggle-contexthub" onclick="setAgent('contexthub')">ContextHub</button>
+                                <button id="toggle-baseline" onclick="setAgent('baseline')">Baseline</button>
+                            </div>
+                            <button class="btn-primary" onclick="askQuestion()" id="ask-btn">Ask</button>
+                        </div>
+                    </div>
+
+                    <div class="spinner" id="ask-spinner">
+                        <div class="spinner-circle"></div>
+                    </div>
+
+                    <div class="error-message" id="ask-error"></div>
+
+                    <div class="response-area" id="ask-response" style="display:none;">
+                        <div class="response-card">
+                            <div class="response-header">
+                                <div class="response-header-left">
+                                    <span class="agent-badge" id="response-agent">ContextHub</span>
+                                    <span style="font-size:13px;color:var(--gray-600);" id="response-question"></span>
+                                </div>
+                                <span class="latency-badge" id="response-latency">—</span>
+                            </div>
+                            <div class="response-body">
+                                <div class="response-answer" id="response-answer"></div>
+
+                                <!-- Tool Calls -->
+                                <div class="tool-calls-section" id="tool-calls-section" style="display:none;">
+                                    <div class="tool-calls-toggle" onclick="toggleToolCalls()">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        <span>Tool Calls (<span id="tool-calls-count">0</span>)</span>
+                                    </div>
+                                    <div class="tool-calls-timeline" id="tool-calls-timeline"></div>
+                                </div>
+
+                                <!-- Sources -->
+                                <div class="sources-section" id="sources-section" style="display:none;">
+                                    <div class="sources-label">Sources</div>
+                                    <div id="sources-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- COMPARE PAGE -->
+                <section class="page" id="page-compare">
+                    <div class="card">
+                        <div class="ask-input-group">
+                            <input type="text" class="ask-input" id="compare-input" placeholder="Enter a question to compare both agents..." onkeydown="if(event.key==='Enter')compareQuestion()">
+                            <button class="btn-primary" onclick="compareQuestion()" id="compare-btn">Compare</button>
+                        </div>
+                    </div>
+
+                    <div class="spinner" id="compare-spinner">
+                        <div class="spinner-circle"></div>
+                    </div>
+
+                    <div class="error-message" id="compare-error"></div>
+
+                    <div class="compare-split" id="compare-results" style="display:none;">
+                        <div class="compare-panel">
+                            <div class="compare-panel-header">
+                                <span>ContextHub Agent</span>
+                                <span class="latency-badge" id="compare-latency-ctx">—</span>
+                            </div>
+                            <div class="compare-panel-body" id="compare-answer-ctx">
+                            </div>
+                        </div>
+                        <div class="compare-panel">
+                            <div class="compare-panel-header">
+                                <span>Baseline Agent</span>
+                                <span class="latency-badge" id="compare-latency-base">—</span>
+                            </div>
+                            <div class="compare-panel-body" id="compare-answer-base">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- METRICS PAGE -->
+                <section class="page" id="page-metrics">
+                    <div class="spinner" id="metrics-spinner">
+                        <div class="spinner-circle"></div>
+                    </div>
+                    <div class="error-message" id="metrics-error"></div>
+                    <div class="metrics-grid" id="metrics-grid"></div>
+                </section>
+
+                <!-- SCHEMA PAGE -->
+                <section class="page" id="page-schema">
+                    <div class="card">
+                        <div class="schema-controls">
+                            <select class="schema-select" id="schema-select" onchange="loadSchema()">
+                                <option value="">Select a table...</option>
+                                <option value="orders">orders</option>
+                                <option value="customers">customers</option>
+                                <option value="products">products</option>
+                                <option value="payments">payments</option>
+                                <option value="sessions">sessions</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="spinner" id="schema-spinner">
+                        <div class="spinner-circle"></div>
+                    </div>
+
+                    <div class="error-message" id="schema-error"></div>
+
+                    <div class="card" id="schema-card" style="display:none;">
+                        <div class="card-header">
+                            <span class="card-title" id="schema-table-name">—</span>
+                        </div>
+                        <table class="schema-table">
+                            <thead>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Nullable</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schema-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // State
+        const API_BASE = 'http://localhost:8000';
+        let currentAgent = 'contexthub';
+        let currentPage = 'ask';
+
+        // Simple markdown to HTML converter
+        function markdownToHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+                .replace(/`([^`]+)`/g, '<code style="background:#f0f0f0;padding:2px 6px;border-radius:3px;font-size:0.9em;">$1</code>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/^### (.+)$/gm, '<h4 style="margin:12px 0 4px;color:#1a1a2e;">$1</h4>')
+                .replace(/^## (.+)$/gm, '<h3 style="margin:14px 0 6px;color:#1a1a2e;">$1</h3>')
+                .replace(/^# (.+)$/gm, '<h2 style="margin:16px 0 8px;color:#1a1a2e;">$1</h2>')
+                .replace(/^\d+\.\s+(.+)$/gm, '<li style="margin:4px 0;margin-left:20px;list-style:decimal;">$1</li>')
+                .replace(/^[-*]\s+(.+)$/gm, '<li style="margin:4px 0;margin-left:20px;list-style:disc;">$1</li>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+        }
+        function navigate(page) {
+            currentPage = page;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`page-${page}`).classList.add('active');
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+            const titles = {
+                ask: ['Ask a Question', 'Query your enterprise data with AI context'],
+                compare: ['Compare Agents', 'See ContextHub vs Baseline responses side by side'],
+                metrics: ['Business Metrics', 'Certified definitions and data catalog'],
+                schema: ['Table Schemas', 'Explore column definitions and data types']
+            };
+
+            document.getElementById('header-title').textContent = titles[page][0];
+            document.getElementById('header-subtitle').textContent = titles[page][1];
+
+            // Load data for pages that need it
+            if (page === 'metrics') loadMetrics();
+
+            // Close sidebar on mobile
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Agent Toggle
+        function setAgent(agent) {
+            currentAgent = agent;
+            document.getElementById('toggle-contexthub').classList.toggle('active', agent === 'contexthub');
+            document.getElementById('toggle-baseline').classList.toggle('active', agent === 'baseline');
+        }
+
+        // Ask
+        async function askQuestion() {
+            const input = document.getElementById('ask-input');
+            const question = input.value.trim();
+            if (!question) return;
+
+            showSpinner('ask');
+            hideError('ask');
+            document.getElementById('ask-response').style.display = 'none';
+            document.getElementById('ask-btn').disabled = true;
+
+            try {
+                const start = performance.now();
+                const res = await fetch(`${API_BASE}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, agent: currentAgent })
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+                const data = await res.json();
+                const latency = Math.round(performance.now() - start);
+
+                renderResponse(data, question, latency);
+            } catch (err) {
+                showError('ask', err.message);
+            } finally {
+                hideSpinner('ask');
+                document.getElementById('ask-btn').disabled = false;
+            }
+        }
+
+        function renderResponse(data, question, latency) {
+            document.getElementById('ask-response').style.display = 'block';
+            document.getElementById('response-agent').textContent = currentAgent === 'contexthub' ? 'ContextHub' : 'Baseline';
+            document.getElementById('response-question').textContent = question;
+            document.getElementById('response-latency').textContent = `${latency}ms`;
+            document.getElementById('response-answer').innerHTML = markdownToHtml(data.answer || data.response || JSON.stringify(data, null, 2));
+
+            // Tool calls
+            const toolCalls = data.tool_calls || data.tools_used || [];
+            const toolSection = document.getElementById('tool-calls-section');
+            if (toolCalls.length > 0) {
+                toolSection.style.display = 'block';
+                document.getElementById('tool-calls-count').textContent = toolCalls.length;
+                const timeline = document.getElementById('tool-calls-timeline');
+                timeline.innerHTML = toolCalls.map(tc => `
+                    <div class="timeline-item">
+                        <div class="timeline-item-title">${tc.tool || tc.name || tc}</div>
+                        <div class="timeline-item-detail">${tc.input || tc.args || tc.detail || ''}</div>
+                    </div>
+                `).join('');
+            } else {
+                toolSection.style.display = 'none';
+            }
+
+            // Sources
+            const sources = data.sources || data.context_sources || [];
+            const sourcesSection = document.getElementById('sources-section');
+            if (sources.length > 0) {
+                sourcesSection.style.display = 'block';
+                document.getElementById('sources-list').innerHTML = sources.map(s =>
+                    `<span class="source-tag">${typeof s === 'string' ? s : s.name || s.source || JSON.stringify(s)}</span>`
+                ).join('');
+            } else {
+                sourcesSection.style.display = 'none';
+            }
+        }
+
+        // Tool calls toggle
+        function toggleToolCalls() {
+            const toggle = document.querySelector('.tool-calls-toggle');
+            const timeline = document.getElementById('tool-calls-timeline');
+            toggle.classList.toggle('expanded');
+            timeline.classList.toggle('visible');
+        }
+
+        // Compare
+        async function compareQuestion() {
+            const input = document.getElementById('compare-input');
+            const question = input.value.trim();
+            if (!question) return;
+
+            showSpinner('compare');
+            hideError('compare');
+            document.getElementById('compare-results').style.display = 'none';
+            document.getElementById('compare-btn').disabled = true;
+
+            try {
+                const [ctxRes, baseRes] = await Promise.all([
+                    fetchAgent(question, 'contexthub'),
+                    fetchAgent(question, 'baseline')
+                ]);
+
+                document.getElementById('compare-results').style.display = 'grid';
+                document.getElementById('compare-answer-ctx').innerHTML = markdownToHtml(ctxRes.data.answer || ctxRes.data.response || JSON.stringify(ctxRes.data, null, 2));
+                document.getElementById('compare-answer-base').innerHTML = markdownToHtml(baseRes.data.answer || baseRes.data.response || JSON.stringify(baseRes.data, null, 2));
+                document.getElementById('compare-latency-ctx').textContent = `${ctxRes.latency}ms`;
+                document.getElementById('compare-latency-base').textContent = `${baseRes.latency}ms`;
+            } catch (err) {
+                showError('compare', err.message);
+            } finally {
+                hideSpinner('compare');
+                document.getElementById('compare-btn').disabled = false;
+            }
+        }
+
+        async function fetchAgent(question, agent) {
+            const start = performance.now();
+            const res = await fetch(`${API_BASE}/ask`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, agent })
+            });
+            if (!res.ok) throw new Error(`${agent}: HTTP ${res.status}`);
+            const data = await res.json();
+            return { data, latency: Math.round(performance.now() - start) };
+        }
+
+        // Metrics
+        async function loadMetrics() {
+            showSpinner('metrics');
+            hideError('metrics');
+            document.getElementById('metrics-grid').innerHTML = '';
+
+            try {
+                const res = await fetch(`${API_BASE}/metrics`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                const data = await res.json();
+                const metrics = Array.isArray(data) ? data : data.metrics || [];
+
+                if (metrics.length === 0) {
+                    document.getElementById('metrics-grid').innerHTML = `
+                        <div class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <p>No metrics found</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                document.getElementById('metrics-grid').innerHTML = metrics.map(m => `
+                    <div class="metric-card">
+                        <div class="metric-card-header">
+                            <span class="metric-name">${m.name || m.metric_name || '—'}</span>
+                            <span class="badge badge-${(m.status || 'experimental').toLowerCase()}">${m.status || 'experimental'}</span>
+                        </div>
+                        <div class="metric-description">${m.description || m.definition || '—'}</div>
+                        ${m.owner || m.table || m.domain ? `
+                        <div class="metric-meta">
+                            ${m.owner ? `<span class="metric-meta-tag">Owner: ${m.owner}</span>` : ''}
+                            ${m.table ? `<span class="metric-meta-tag">Table: ${m.table}</span>` : ''}
+                            ${m.domain ? `<span class="metric-meta-tag">Domain: ${m.domain}</span>` : ''}
+                        </div>` : ''}
+                    </div>
+                `).join('');
+            } catch (err) {
+                showError('metrics', err.message);
+            } finally {
+                hideSpinner('metrics');
+            }
+        }
+
+        // Schema
+        async function loadSchema() {
+            const table = document.getElementById('schema-select').value;
+            if (!table) {
+                document.getElementById('schema-card').style.display = 'none';
+                return;
+            }
+
+            showSpinner('schema');
+            hideError('schema');
+            document.getElementById('schema-card').style.display = 'none';
+
+            try {
+                const res = await fetch(`${API_BASE}/schema/${table}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                const data = await res.json();
+                const columns = data.columns || data.schema || data;
+
+                document.getElementById('schema-table-name').textContent = `Table: ${table}`;
+                document.getElementById('schema-tbody').innerHTML = (Array.isArray(columns) ? columns : []).map(col => `
+                    <tr>
+                        <td><strong>${col.name || col.column_name || '—'}</strong></td>
+                        <td><span class="col-type">${col.type || col.data_type || '—'}</span></td>
+                        <td>${col.description || '—'}</td>
+                        <td>${col.nullable !== undefined ? (col.nullable ? 'Yes' : 'No') : '—'}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('schema-card').style.display = 'block';
+            } catch (err) {
+                showError('schema', err.message);
+            } finally {
+                hideSpinner('schema');
+            }
+        }
+
+        // Utilities
+        function showSpinner(page) {
+            document.getElementById(`${page}-spinner`).classList.add('visible');
+        }
+
+        function hideSpinner(page) {
+            document.getElementById(`${page}-spinner`).classList.remove('visible');
+        }
+
+        function showError(page, msg) {
+            const el = document.getElementById(`${page}-error`);
+            el.textContent = `Error: ${msg}`;
+            el.classList.add('visible');
+        }
+
+        function hideError(page) {
+            document.getElementById(`${page}-error`).classList.remove('visible');
+        }
+    </script>
+</body>
+</html>

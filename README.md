@@ -208,7 +208,7 @@ The evaluation is designed to demonstrate differences in these key scenarios:
 
 | Decision | Rationale |
 |----------|-----------|
-| **LangGraph over custom loop** | Provides structured state management and tool-calling patterns; relevant for portfolio |
+| **LangGraph over custom loop** | Provides structured state management and tool-calling patterns |
 | **PostgreSQL for context** | Structured, queryable context. Not a vector store — metrics have known fields, not fuzzy semantics |
 | **In-process MCP tools** | Simplicity for demo. The MCP server can run standalone for production use |
 | **Free-tier LLMs** | Gemini 2.0 Flash (free), Groq (free), Ollama (local). No paid API required |
@@ -354,7 +354,7 @@ contexthub/
 - **Evaluation requires LLM API calls**: Real results need actual LLM inference. Free-tier rate limits mean evaluation takes ~2 minutes.
 - **Single database schema**: The demo uses 4 tables. Real enterprise environments have hundreds of tables with more complex ambiguities.
 - **No multi-turn conversation**: Each question is independent. A production system would maintain conversation context.
-- **Context is manually curated**: In production, context would be pulled from data catalogs (like Atlan) rather than hand-seeded.
+- **Context is manually curated**: In production, context would be pulled from data catalogs rather than hand-seeded.
 - **No versioning**: Context definitions don't have version history or approval workflows.
 - **Limited RAG**: No unstructured document retrieval — only structured context. This is intentional to keep the experiment focused.
 
@@ -362,49 +362,12 @@ contexthub/
 
 ## Future Work
 
-- **Atlan integration**: Replace the manual context layer with live data from Atlan's API
+- **Data catalog integration**: Replace the manual context layer with live data from an enterprise data catalog API
 - **Confidence scoring**: Have the agent self-assess answer confidence based on context availability
 - **Multi-turn context**: Maintain conversation state for follow-up questions
 - **Context freshness alerts**: Warn when context was last validated >30 days ago
 - **A/B evaluation at scale**: Run evaluation across different LLMs and compare
 - **Automated context ingestion**: Parse dbt schema files or data catalog exports into the context layer
-
----
-
-## Demo Script (2-3 minutes)
-
-### Part 1: The Problem (30s)
-
-"Our database has `total_amount` and `net_amount` in orders. Which one is revenue? A naive LLM can't know — it depends on business decisions that live outside the schema."
-
-### Part 2: ContextHub in Action (60s)
-
-```bash
-python cli.py -q "What was our revenue in July 2026?"
-```
-
-Show the tool call trace:
-1. `search_assets("revenue")` → finds both metrics
-2. `get_definition("net_revenue")` → certified, maps to net_amount
-3. `get_trust_signal("gross_revenue")` → deprecated
-4. `execute_sql(...)` → correct query with proper filters
-5. Grounded answer with sources
-
-### Part 3: Baseline Comparison (45s)
-
-```bash
-python cli.py --compare -q "What was our revenue in July 2026?"
-```
-
-Show how baseline picks `total_amount` while ContextHub uses `net_amount` with certification context.
-
-### Part 4: Evaluation Results (30s)
-
-```bash
-python -m evaluation.runner --questions 5
-```
-
-Show the comparison table demonstrating ContextHub's advantage in metric selection and groundedness.
 
 ---
 
@@ -424,4 +387,4 @@ Show the comparison table demonstrating ContextHub's advantage in metric selecti
 
 ---
 
-*Built as a focused engineering experiment for an AI-Native Builder internship application.*
+*Built during a hackathon as an engineering experiment in AI agent reliability.*
